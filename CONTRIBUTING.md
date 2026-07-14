@@ -1,0 +1,78 @@
+# Contributing
+
+Code contributions are always welcome in `lf`.
+
+If you are going to introduce a new feature, it is best to open an issue first for discussion. You should also consider the following:
+
+- Whether it can be implemented entirely in user configuration instead
+- The complexity added by supporting it
+- The number of users interested in it
+
+If your feature can be implemented as a configuration option, **please add it to the [wiki](https://github.com/gokcehan/lf/wiki)**.
+
+For bug fixes, you can simply send a pull request.
+
+## Code conventions
+
+In addition to `gofmt` and friends (e.g. [go vet](https://pkg.go.dev/cmd/vet), [staticcheck](https://staticcheck.dev/), [golangci-lint](https://golangci-lint.run/)), we have a few conventions:
+
+- Global variables are best avoided except when they are not.
+  Global variable names are prefixed with `g` as in `gFooBar`.
+  Exceptions are variables that store values of environment variables, which are prefixed with `env` as in `envFooBar`, and regular expressions, which are prefixed with `re` as in `reFooBar` when they are global.
+- Type and function names are lowercase as in `fooBar` since we don't use exporting.
+- For filename variables, `name`, `fname`, or `filename` should refer to the base name of the file as in `baz.txt`, and `path`, `fpath`, or `filepath` should refer to the full path of the file as in `/foo/bar/baz.txt`.
+- Run `go fmt` to ensure that files are formatted correctly.
+- Consider using [conventional](https://www.conventionalcommits.org/) commit messages.
+
+Use the surrounding code as reference when in doubt as usual.
+
+## Adding a new option
+
+Adding a new option usually requires the following steps:
+
+- Add option name/type to `gOpts` struct in `opts.go`
+- Add default option value to `init` function in `opts.go`
+- Add option evaluation logic to `setExpr.eval` in `eval.go`
+- Implement the option somewhere in the code
+- Add option name and its default value to `Quick Reference` and `Settings` sections in `doc.md`
+- Run `gen/doc.sh` to update the documentation (optional as it requires `docker`/`podman`, but appreciated)
+- Commit your changes and send a pull request
+
+Options should be defined in alphabetical order, but note that boolean options are defined first in `eval.go` as they require special handling.
+
+## Adding a new builtin command
+
+Adding a new command usually requires the following steps:
+
+- Add default key if any to `init` function in `opts.go`
+- Add command evaluation logic to `callExpr.eval` in `eval.go`
+- Implement the command somewhere in the code
+- Add command name to `gCmdWords` in `complete.go` for tab completion
+- Add command name to `Quick Reference` and `Commands` sections in `doc.md`
+- Run `gen/doc.sh` to update the documentation (optional as it requires `docker`/`podman`, but appreciated)
+- Commit your changes and send a pull request
+
+Commands should be defined in alphabetical order, but note that commands are first organized roughly into the following sections in `eval.go` for clarity:
+
+- Navigation
+- Selection
+- File-related operations
+- Shell commands
+- Finding and searching
+- Filtering
+- Marks
+- Tags
+- Echoing
+- Miscellaneous commands
+- Visual mode
+- Command-line mode commands
+- Hook commands
+
+## Platform specific code
+
+There are two files named `os.go` and `os_windows.go` for Unix and Windows specific code respectively.
+If you add something to either of these files but not the other, you will probably break the build for the other platform.
+If your addition works the same on both platforms, your addition probably belongs to `main.go` instead.
+
+There are also different variants of the `df` functionality provided by `df_openbsd.go`, `df_statfs.go`, `df_statvfs.go` and `df_windows.go`.
+Where applicable, ensure that any changes you make are reflected across all of these files for consistency.
